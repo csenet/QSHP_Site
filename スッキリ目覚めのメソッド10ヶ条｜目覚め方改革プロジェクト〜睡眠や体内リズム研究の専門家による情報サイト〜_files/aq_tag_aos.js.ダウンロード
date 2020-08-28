@@ -1,0 +1,52 @@
+// Auriq Systems Inc.
+// $Id: aq_tag_aos.js 9.1.0 $
+// 2020.04.22
+(function() {
+  var w, i;
+  if (!aqObject) return;
+  aqObject.aqusr = "OPCA002.500258BB021BA8BCBD";
+  if ((w = document.cookie)) {
+    while (w.length > 6) {
+      if (w.substring(0, 6) == "aqusr=") {
+        if ((i = w.indexOf(";")) < 0) i = w.length;
+        aqObject.aqusr = w.substring(6, i);
+        break;
+      }
+      if ((i = w.indexOf(";")) < 0) break;
+      for (i += 1; i < w.length; ++i) if (w.charAt(i) != ' ') break;
+      w = w.substring(i, w.length);
+    }
+  }
+  w = new Date();
+  w.setFullYear(w.getFullYear() + 1);
+  document.cookie = "aqusr=" + aqObject.aqusr + "; path=/; expires=" + w.toUTCString();
+  aqObject._tag = function(ag) {
+    var ty, i, j, s, p, r;
+    if (!this.aqid || !document.URL) return;
+    i = 0; ty = (ag.length)? ag[i++] : "tag";
+    s = ((document.location.protocol == "https:")? "https:" : "http:") +
+      "//cdp.otsuka.com/cgi-bin/asp/tagx/";
+    j = new Date(); s += j.getTime();
+    s += "/" + this.aqid + "?1=" + this.aqusr;
+    p = document.URL;
+    if (ty == "tag_cat" && i < ag.length) {
+      if ((j = p.indexOf("?")) < 0) p += "?"; else if (j < p.length - 1) p += "&";
+      p += ag[i++];
+    }
+    s += "&2=" + encodeURIComponent(p);
+    if (ty == "tag_file" && i < ag.length) s += "&3=" + encodeURIComponent(ag[i++]);
+    r = (ty == "tag_file")? p : document.referrer;
+    if (r) s += "&4=" + encodeURIComponent(r);
+    while (i < ag.length) s += "&101=" + encodeURIComponent(ag[i++]);
+    s += "&101=res=" + screen.width + "x" + screen.height;
+    j = new Image(1, 1);
+    j.onload = function() { return; };
+    j.src = s;
+  };
+  aqObject.tag = function() { this._tag(arguments); };
+  w = aqObject._q;
+  if (typeof aqObject.default_tag != "boolean") aqObject.default_tag = (w.length)? false : true;
+  if (aqObject.default_tag) aqObject.tag();
+  while (w.length) aqObject._tag(w.shift());
+  if (typeof aqObject.callback == "function") aqObject.callback();
+})();
